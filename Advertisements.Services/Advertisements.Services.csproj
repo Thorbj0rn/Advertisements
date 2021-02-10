@@ -4,4 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Advertisements.Data\Advertisements.Data.csproj" />
+    <ProjectReference Include="..\Advertisements.Interfaces\Advertisements.Interfaces.csproj" />
+  </ItemGroup>
+
 </Project>
