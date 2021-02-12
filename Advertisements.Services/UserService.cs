@@ -1,6 +1,8 @@
 ﻿using Advertisements.Data;
+using Advertisements.Data.Entities;
 using Advertisements.Interfaces;
 using Advertisements.Interfaces.Models.UserService;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -26,9 +28,21 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public Task<bool> DeleteUser(Guid id)
+        public async Task<bool> DeleteUser(Guid id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user = new User { Id = id };
+                _dataContext.Remove(user);
+                await _dataContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return false; 
+            }
         }
 
         /// <summary>
@@ -36,9 +50,28 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public Task<bool> UpdateUser(UpdateUserRequest req)
+        public async Task<bool> UpdateUser(UpdateUserRequest req)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user = new User
+                {
+                    Id = req.Id.GetValueOrDefault(Guid.Empty),
+                    Name = req.Name
+                };
+
+                _dataContext.Attach(user);
+                _dataContext.Entry(user).State = req.Id.HasValue ? EntityState.Modified : EntityState.Added;
+
+                await _dataContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return false;
+            }
         }
     }
 }

@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +11,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.0.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,5 +21,6 @@
     <ProjectReference Include="..\Advertisements.Services\Advertisements.Services.csproj" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions> 
 
 </Project>

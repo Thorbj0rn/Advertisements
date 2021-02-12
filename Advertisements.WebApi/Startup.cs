@@ -1,5 +1,7 @@
 using Advertisements.Data;
+using Advertisements.Interfaces;
 using Advertisements.Interfaces.Options;
+using Advertisements.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +12,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advertisements.WebApi
@@ -28,11 +32,21 @@ namespace Advertisements.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSwaggerGen(c =>
+            {
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+            });
 
             services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             }, ServiceLifetime.Scoped);
+
+            services.AddScoped<IUserService, UserService>();
+            //services.AddScoped<IAdvertisementService, AdvertisementService>();
             services.Configure<AdvertisementsOptions>(Configuration.GetSection(nameof(AdvertisementsOptions)));
         }
 
@@ -43,6 +57,16 @@ namespace Advertisements.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
 
             app.UseRouting();
 

@@ -12,7 +12,7 @@ namespace Advertisements.Interfaces.Models.UserService
         /// <summary>
         /// Идентификатор
         /// </summary>
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         /// <summary>
         /// Имя
         /// </summary>
