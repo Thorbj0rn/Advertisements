@@ -8,9 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advertisements.WebApi.Controllers
-{
+{    
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("user-controller")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -22,7 +22,7 @@ namespace Advertisements.WebApi.Controllers
             _logger = logger;
         }
 
-        [HttpPost(Name = "update-user")]
+        [HttpPost("update-user")]
         public async Task<ActionResult<bool>> UpdateUser(UpdateUserRequest request)
         {
             try 

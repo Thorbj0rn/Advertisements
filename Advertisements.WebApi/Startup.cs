@@ -4,6 +4,7 @@ using Advertisements.Interfaces.Options;
 using Advertisements.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,7 @@ namespace Advertisements.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSwaggerGen(c =>
             {
                 // Set the comments path for the Swagger JSON and UI.
@@ -46,7 +48,7 @@ namespace Advertisements.WebApi
             }, ServiceLifetime.Scoped);
 
             services.AddScoped<IUserService, UserService>();
-            //services.AddScoped<IAdvertisementService, AdvertisementService>();
+            services.AddScoped<IAdvertisementService, AdvertisementService>();
             services.Configure<AdvertisementsOptions>(Configuration.GetSection(nameof(AdvertisementsOptions)));
         }
 
@@ -65,7 +67,7 @@ namespace Advertisements.WebApi
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Advertisement API");
             });
 
             app.UseRouting();
