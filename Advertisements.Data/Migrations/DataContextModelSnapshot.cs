@@ -19,6 +19,8 @@ namespace Advertisements.Data.Migrations
                 .HasAnnotation("ProductVersion", "5.0.3")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.HasSequence<int>("AdvertisementNumbers");
+
             modelBuilder.Entity("Advertisements.Data.Entities.Advertisement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -27,13 +29,16 @@ namespace Advertisements.Data.Migrations
 
                     b.Property<DateTime>("DateCreate")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Number")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValueSql("NEXT VALUE FOR AdvertisementNumbers");
 
                     b.Property<double>("Rating")
                         .HasColumnType("float");

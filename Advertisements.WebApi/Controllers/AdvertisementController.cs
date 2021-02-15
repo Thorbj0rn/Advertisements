@@ -24,7 +24,7 @@ namespace Advertisements.WebApi.Controllers
         }
 
         [HttpPost("update-advertisement")]
-        
+
         public async Task<ActionResult<bool>> UpdateAdvertisement([FromForm] UpdateAdvertisementRequest req)
         {
             try
@@ -32,7 +32,22 @@ namespace Advertisements.WebApi.Controllers
                 var res = await _advService.UpdateAdvertisement(req);
                 return new OkObjectResult(res);
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("get-advertisements")]
+        public async Task<ActionResult<List<AdvertisementResponse>>> GetAdvertisements ([FromForm]AdvertisementsRequest req)
+        {
+            try
+            {
+                var res = await _advService.GetAdvertisements(req);
+                return new OkObjectResult(res);
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return BadRequest();

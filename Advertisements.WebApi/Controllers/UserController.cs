@@ -33,7 +33,22 @@ namespace Advertisements.WebApi.Controllers
             catch(Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new ActionResult<bool>(false);
+                throw ex;
+            }
+        }
+
+        [HttpGet("get-users")]        
+        public async Task<ActionResult<List<UserResponse>>> GetUsers()
+        {
+            try
+            {
+                var res = await _userService.GetUsers();
+                return new OkObjectResult(res);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw ex;
             }
         }
     }

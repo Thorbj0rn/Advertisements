@@ -25,6 +25,10 @@ namespace Advertisements.Data
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
+            mb.HasSequence<int>("AdvertisementNumbers")
+                .StartsAt(1)
+                .IncrementsBy(1);
+
             mb.Entity<User>(e =>
             {
                 e.HasKey(x => x.Id);                
@@ -33,7 +37,8 @@ namespace Advertisements.Data
             mb.Entity<Advertisement>(e =>
             {
                 e.HasKey(x => x.Id);
-                e.Property(x => x.DateCreate).ValueGeneratedOnAdd();
+                e.Property(x => x.Number).HasDefaultValueSql("NEXT VALUE FOR AdvertisementNumbers");
+                e.Property(x => x.DateCreate).HasDefaultValueSql("getdate()");
             });
         }
     }

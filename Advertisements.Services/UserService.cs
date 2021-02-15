@@ -1,10 +1,13 @@
 ﻿using Advertisements.Data;
 using Advertisements.Data.Entities;
 using Advertisements.Interfaces;
+using Advertisements.Interfaces.Models;
 using Advertisements.Interfaces.Models.UserService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advertisements.Services
@@ -42,6 +45,30 @@ namespace Advertisements.Services
             {
                 _logger.LogError(ex.Message);
                 return false; 
+            }
+        }
+
+        /// <summary>
+        /// Возвращает список пользователей
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<UserResponse>> GetUsers()
+        {
+            try
+            {
+                var users = await _dataContext.Users
+                    .Select(u => new UserResponse
+                    {
+                        Id = u.Id,
+                        Name = u.Name
+                    })
+                    .ToListAsync();
+                return users;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw ex;
             }
         }
 

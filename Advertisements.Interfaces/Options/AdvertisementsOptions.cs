@@ -12,10 +12,6 @@ namespace Advertisements.Interfaces.Options
         /// <summary>
         /// Максимальное количество объявлений для одного пользователя
         /// </summary>
-        public int MaxAdsPerUser { get; set; }
-        /// <summary>
-        /// Путь к папке с файлами
-        /// </summary>
-        public string FilePath { get; set; }
+        public int MaxAdsPerUser { get; set; }        
     }
 }

@@ -14,6 +14,10 @@ using System.IO;
 using Advertisements.Data.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Advertisements.Interfaces.Models.FileService;
+using System.Linq;
+using System.Linq.Dynamic.Core;
+using Advertisements.Interfaces.Models;
 
 namespace Advertisements.Services
 {
@@ -23,22 +27,20 @@ namespace Advertisements.Services
     public class AdvertisementService: IAdvertisementService
     {
         private readonly DataContext _dataContext;
-        private readonly ILogger<AdvertisementService> _logger;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly ILogger<AdvertisementService> _logger;        
         private readonly AdvertisementsOptions _options;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IFileService _fileService;
+        
 
         public AdvertisementService(DataContext dataContext, 
-                                    ILogger<AdvertisementService> logger,
-                                    IHostingEnvironment hostingEnvironment,
+                                    ILogger<AdvertisementService> logger,                                    
                                     IOptions<AdvertisementsOptions> options,
-                                    IHttpContextAccessor httpContextAccessor)
+                                    IFileService fileService)
         {
             _dataContext = dataContext;
             _logger = logger;
-            _hostingEnvironment = hostingEnvironment;
             _options = options.Value;
-            _httpContextAccessor = httpContextAccessor;
+            _fileService = fileService;
         }
 
         public Task<bool> DeleteAdvertisement(Guid id)
@@ -51,27 +53,15 @@ namespace Advertisements.Services
             try
             {
                 var id = req.Id.HasValue ? req.Id.Value : Guid.NewGuid();
-                var url = "";
-                if (req.Image != null)
+                var saveFileReq = new SaveFileRequest
                 {
-                    // Относительный путь к файлу (относительно wwwroot)
-                    var path = $"{_options.FilePath}/{FileDirectoryEnum.Advertisements.ToString()}/{id}{Path.GetExtension(req.Image.FileName)}";
-                    // Путь для сохранения
-                    var savePath = _hostingEnvironment.WebRootPath + path;
-                    var dir = Path.GetDirectoryName(savePath);
-                    if (!Directory.Exists(dir))
-                        Directory.CreateDirectory(dir);
+                    FileName = $"{id}",
+                    DirectoryName = FileDirectoryEnum.Advertisements,
+                    UploadedFile = req.Image
+                };
 
-                    // сохраняем файл
-                    using (var fileStream = new FileStream(savePath, FileMode.OpenOrCreate))
-                    {
-                        await req.Image.CopyToAsync(fileStream);
-                    }
-
-                    // Ссылка на файл
-                    var httpContext = _httpContextAccessor.HttpContext.Request;
-                    url = $"{httpContext.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}{path}";
-                }
+                var url = req.Image != null ? await _fileService.SaveFile(saveFileReq) : "";
+                
                 var adv = new Advertisement
                 {
                     Id = id,
@@ -92,6 +82,90 @@ namespace Advertisements.Services
                 _logger.LogError(ex.Message);
                 return false;
             }
+        }
+
+        public async Task<PaginationResponse<AdvertisementResponse>> GetAdvertisements(AdvertisementsRequest req)
+        {
+            try
+            {
+                // Выбираем объявления
+                var advs =  _dataContext.Advertisements
+                    .Select(a => new AdvertisementResponse
+                    {
+                        Id = a.Id,
+                        Number = a.Number,
+                        Text = a.Text,
+                        DateCreate = a.DateCreate,
+                        ImageUrl = a.ImageUrl,
+                        Rating = a.Rating,
+                        UserId = a.UserId,
+                        UserName = a.User.Name
+                    });
+                // Применяем фильтры
+                if (req?.Filters != null && req.Filters.Count > 0)
+                {
+                    req.Filters.ForEach(f =>
+                    {
+                        var expression = GetConditionTemplate(f.Condition, f.FieldName);
+                        advs = advs.Where(expression, f.Value);
+                    });
+                }
+                // Применяем сортировки
+                if (req?.Sorts != null && req.Sorts.Count > 0)
+                {
+                    var sort = string.Join(',', req.Sorts.Select(s => GetSort(s.FieldName, s.Desc)).ToList());
+                    advs = advs.OrderBy(sort);
+                }
+                // Применяем пагинацию
+                var page = req?.Pagination?.Page != null ? req.Pagination.Page : 1;
+                var pageSize = req?.Pagination?.PageSize != null ? req.Pagination.PageSize : 10;
+                var pageRes = advs.PageResult(page, pageSize);
+                
+                var result = new PaginationResponse<AdvertisementResponse>
+                {
+                    Items = await pageRes.Queryable.ToListAsync(),
+                    CurrentPage = pageRes.CurrentPage,
+                    PageCount = pageRes.PageCount,
+                    PageSize = pageRes.PageSize,
+                    RowCount = pageRes.RowCount
+                };
+
+                return result;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw ex;
+            }
+        }
+
+        private string GetSort(string fieldName, bool desc)
+        {
+            var descString = desc ? " desc" : "";
+            return fieldName + descString;
+        }
+        private string GetConditionTemplate(FilterConditionEnum type, string fieldName)
+        {
+            var res = "";
+            switch (type)
+            {
+                case FilterConditionEnum.Contains: 
+                    res = $"{fieldName}.Contains(@0)"; 
+                    break;
+                case FilterConditionEnum.Equal: 
+                    res = $"{fieldName} == @0"; 
+                    break;
+                case FilterConditionEnum.GreaterThan: 
+                    res = $"{fieldName} > @0"; 
+                    break;
+                case FilterConditionEnum.LesserThan: 
+                    res = $"{fieldName} < @0"; 
+                    break;
+                default: 
+                    throw new Exception("Неизвестное условие.");
+            }
+
+            return res;
         }
     }
 }

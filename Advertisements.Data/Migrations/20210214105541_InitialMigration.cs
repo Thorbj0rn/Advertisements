@@ -3,10 +3,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Advertisements.Data.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateSequence<int>(
+                name: "AdvertisementNumbers");
+
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
@@ -24,12 +27,12 @@ namespace Advertisements.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Number = table.Column<int>(type: "int", nullable: false),
+                    Number = table.Column<int>(type: "int", nullable: false, defaultValueSql: "NEXT VALUE FOR AdvertisementNumbers"),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Rating = table.Column<double>(type: "float", nullable: false),
-                    DateCreate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    DateCreate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()")
                 },
                 constraints: table =>
                 {
@@ -55,6 +58,9 @@ namespace Advertisements.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropSequence(
+                name: "AdvertisementNumbers");
         }
     }
 }

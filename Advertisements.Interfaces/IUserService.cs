@@ -1,5 +1,8 @@
-﻿using Advertisements.Interfaces.Models.UserService;
+﻿
+using Advertisements.Interfaces.Models;
+using Advertisements.Interfaces.Models.UserService;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Advertisements.Interfaces
@@ -21,5 +24,10 @@ namespace Advertisements.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         Task<bool> DeleteUser(Guid id);
+        /// <summary>
+        /// Возвращает список пользователей
+        /// </summary>
+        /// <returns></returns>
+        Task<List<UserResponse>> GetUsers();
     }
 }

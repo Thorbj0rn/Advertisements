@@ -1,4 +1,5 @@
-﻿using Advertisements.Interfaces.Models.AdvertisementService;
+﻿using Advertisements.Interfaces.Models;
+using Advertisements.Interfaces.Models.AdvertisementService;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,5 +24,11 @@ namespace Advertisements.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         Task<bool> DeleteAdvertisement(Guid id);
+        /// <summary>
+        /// Возвращает список объявлений
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<PaginationResponse<AdvertisementResponse>> GetAdvertisements(AdvertisementsRequest req);
     }
 }
