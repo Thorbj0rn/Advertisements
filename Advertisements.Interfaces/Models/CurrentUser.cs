@@ -3,25 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Advertisements.Interfaces.Models.UserService
+namespace Advertisements.Interfaces.Models
 {
     /// <summary>
-    /// Выходная модель данных пользователя
+    /// Модель текущего пользователя
     /// </summary>
-    public class UserResponse
+    public class CurrentUser
     {
         /// <summary>
         /// Идентификатор
         /// </summary>
         public Guid Id { get; set; }
-        /// <summary>
-        /// Имя
-        /// </summary>
-        public string Name { get; set; }
-        /// <summary>
-        /// Логин
-        /// </summary>
-        public string Login { get; set; }        
         /// <summary>
         /// Роль
         /// </summary>

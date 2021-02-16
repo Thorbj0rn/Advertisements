@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Advertisements.Data.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,6 +18,22 @@ namespace Advertisements.Data.Entities
         /// Имя
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Логин
+        /// </summary>
+        public string Login { get; set; }
+        /// <summary>
+        /// Пароль
+        /// </summary>
+        public string Password { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string PassKey { get; set; }
+        /// <summary>
+        /// Роль
+        /// </summary>
+        public UserRoleEnum Role { get; set; }
 
 
         /// <summary>

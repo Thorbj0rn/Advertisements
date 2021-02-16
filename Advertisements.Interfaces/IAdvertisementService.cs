@@ -12,8 +12,9 @@ namespace Advertisements.Interfaces
     /// </summary>
     public interface IAdvertisementService
     {
+        Task<int> AddAdvertisement(AddAdvertisementRequest req); 
         /// <summary>
-        /// Добавить/изменить объявление
+        /// Изменить объявление
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>

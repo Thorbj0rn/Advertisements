@@ -2,6 +2,7 @@ using Advertisements.Data;
 using Advertisements.Interfaces;
 using Advertisements.Interfaces.Options;
 using Advertisements.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +12,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,6 +35,32 @@ namespace Advertisements.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        options.RequireHttpsMetadata = false;
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            // укзывает, будет ли валидироваться издатель при валидации токена
+                            ValidateIssuer = true,
+                            // строка, представляющая издателя
+                            ValidIssuer = AuthOptions.Issuer,
+
+                            // будет ли валидироваться потребитель токена
+                            ValidateAudience = true,
+                            // установка потребителя токена
+                            ValidAudience = AuthOptions.Audience,
+                            // будет ли валидироваться время существования
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero,
+                            // установка ключа безопасности
+                            IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
+                            // валидация ключа безопасности
+                            ValidateIssuerSigningKey = true,
+                        };
+                    });
+            //services.AddAuthorization();
+            services.AddHttpContextAccessor();
             services.AddControllers();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSwaggerGen(c =>
@@ -40,6 +69,27 @@ namespace Advertisements.WebApi
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                                           {
+                                             new OpenApiSecurityScheme
+                                             {
+                                               Reference = new OpenApiReference
+                                               {
+                                                 Type = ReferenceType.SecurityScheme,
+                                                 Id = "Bearer"
+                                               }
+                                              },
+                                              new string[] { }
+                                            }
+                                          });
             });
 
             services.AddDbContext<DataContext>(options =>
@@ -49,6 +99,7 @@ namespace Advertisements.WebApi
 
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IAdvertisementService, AdvertisementService>();
             services.Configure<AdvertisementsOptions>(Configuration.GetSection(nameof(AdvertisementsOptions)));
             services.Configure<FilesOptions>(Configuration.GetSection(nameof(FilesOptions)));
@@ -77,7 +128,8 @@ namespace Advertisements.WebApi
             app.UseRouting();
             app.UseStaticFiles();
 
-            app.UseAuthorization();
+            app.UseAuthentication();
+            app.UseAuthorization();            
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,13 +1,17 @@
 ﻿using Advertisements.Data;
 using Advertisements.Data.Entities;
+using Advertisements.Data.Enums;
 using Advertisements.Interfaces;
 using Advertisements.Interfaces.Models;
 using Advertisements.Interfaces.Models.UserService;
+using Advertisements.Services.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Advertisements.Services
@@ -19,11 +23,12 @@ namespace Advertisements.Services
     {
         private readonly DataContext _dataContext;
         private readonly ILogger<UserService> _logger;
+        
 
         public UserService(DataContext dataContext, ILogger<UserService> logger)
         {
             _dataContext = dataContext;
-            _logger = logger;
+            _logger = logger;            
         }
 
         /// <summary>
@@ -44,7 +49,7 @@ namespace Advertisements.Services
             catch(Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return false; 
+                throw ex; 
             }
         }
 
@@ -60,7 +65,9 @@ namespace Advertisements.Services
                     .Select(u => new UserResponse
                     {
                         Id = u.Id,
-                        Name = u.Name
+                        Name = u.Name,
+                        Login = u.Login,
+                        Role = u.Role
                     })
                     .ToListAsync();
                 return users;
@@ -81,10 +88,17 @@ namespace Advertisements.Services
         {
             try
             {
+                var key = Guid.NewGuid().ToString();
+                var password = req.Password.GetSHA256Hash(key);
+
                 var user = new User
                 {
                     Id = req.Id.GetValueOrDefault(Guid.Empty),
-                    Name = req.Name
+                    Name = req.Name,
+                    Login = req.Login,
+                    Password = password,
+                    PassKey = key,
+                    Role = req.Role                    
                 };
 
                 _dataContext.Attach(user);
@@ -97,7 +111,7 @@ namespace Advertisements.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return false;
+                throw ex;
             }
         }
     }

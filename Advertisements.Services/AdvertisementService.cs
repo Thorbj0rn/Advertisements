@@ -18,6 +18,7 @@ using Advertisements.Interfaces.Models.FileService;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using Advertisements.Interfaces.Models;
+using System.Security.Claims;
 
 namespace Advertisements.Services
 {
@@ -30,29 +31,66 @@ namespace Advertisements.Services
         private readonly ILogger<AdvertisementService> _logger;        
         private readonly AdvertisementsOptions _options;
         private readonly IFileService _fileService;
-        
+        private readonly CurrentUser _user;
 
         public AdvertisementService(DataContext dataContext, 
                                     ILogger<AdvertisementService> logger,                                    
                                     IOptions<AdvertisementsOptions> options,
-                                    IFileService fileService)
+                                    IFileService fileService,
+                                    IHttpContextAccessor httpContextAccessor)
         {
             _dataContext = dataContext;
             _logger = logger;
             _options = options.Value;
             _fileService = fileService;
+            _user = new CurrentUser
+            {
+                Id = Guid.Parse(httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value),
+                Role = (UserRoleEnum)Enum.Parse(typeof(UserRoleEnum), httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role).Value)
+            };
         }
 
-        public Task<bool> DeleteAdvertisement(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateAdvertisement(UpdateAdvertisementRequest req)
+        /// <summary>
+        /// Удаляет объявление
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<bool> DeleteAdvertisement(Guid id)
         {
             try
             {
-                var id = req.Id.HasValue ? req.Id.Value : Guid.NewGuid();
+                var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id);
+                if (adv == null)
+                    throw new Exception("Объявление не найдено.");
+                if (_user.Role != UserRoleEnum.Admin && _user.Id != adv.UserId)
+                    throw new Exception("У вас нет прав удалять данное объявление.");
+
+                _dataContext.Remove(adv);
+                await _dataContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// Добавляет объявление
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<int> AddAdvertisement(AddAdvertisementRequest req)
+        {
+            try
+            {
+                var currentCount = await _dataContext.Advertisements.CountAsync(a => a.UserId == _user.Id);
+                if (currentCount >= _options.MaxAdsPerUser)
+                    throw new Exception("Вы исчерпали лимит объявлений.");
+
+                var id = Guid.NewGuid();
                 var saveFileReq = new SaveFileRequest
                 {
                     FileName = $"{id}",
@@ -61,29 +99,69 @@ namespace Advertisements.Services
                 };
 
                 var url = req.Image != null ? await _fileService.SaveFile(saveFileReq) : "";
-                
+
                 var adv = new Advertisement
                 {
                     Id = id,
                     ImageUrl = url,
                     Text = req.Text,
-                    // TODO: UserId идентификатор авторизованного пользователя
-                    UserId = req.UserId
+                    UserId = _user.Id
                 };
 
-                _dataContext.Attach(adv);
-                _dataContext.Entry(adv).State = req.Id.HasValue ? EntityState.Modified : EntityState.Added;
+                await _dataContext.AddAsync(adv);                
                 await _dataContext.SaveChangesAsync();
+
+                return adv.Number;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// Обновляет объявление
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<bool> UpdateAdvertisement(UpdateAdvertisementRequest req)
+        {
+            try
+            {
+                var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == req.Id);
+                if (adv == null)
+                    throw new Exception("Объявление не найдено.");
+                if (_user.Role != UserRoleEnum.Admin && _user.Id != adv.UserId)
+                    throw new Exception("У вас нет прав редактировать данное объявление.");
+                                
+                var saveFileReq = new SaveFileRequest
+                {
+                    FileName = $"{adv.Id}",
+                    DirectoryName = FileDirectoryEnum.Advertisements,
+                    UploadedFile = req.Image
+                };
+                var url = req.Image != null ? await _fileService.SaveFile(saveFileReq) : "";
+
+                adv.ImageUrl = url;
+                adv.Text = req.Text;
+
+                await _dataContext.SaveChangesAsync();               
 
                 return true;
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return false;
+                throw ex;
             }
         }
 
+        /// <summary>
+        /// Возвращает список объявлений
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
         public async Task<PaginationResponse<AdvertisementResponse>> GetAdvertisements(AdvertisementsRequest req)
         {
             try
@@ -139,11 +217,23 @@ namespace Advertisements.Services
             }
         }
 
+        /// <summary>
+        /// Возвращает строку с параметрами сортировки
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="desc"></param>
+        /// <returns></returns>
         private string GetSort(string fieldName, bool desc)
         {
             var descString = desc ? " desc" : "";
             return fieldName + descString;
         }
+        /// <summary>
+        /// Возвращает шаблон условия
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
         private string GetConditionTemplate(FilterConditionEnum type, string fieldName)
         {
             var res = "";
@@ -167,5 +257,7 @@ namespace Advertisements.Services
 
             return res;
         }
+
+        
     }
 }

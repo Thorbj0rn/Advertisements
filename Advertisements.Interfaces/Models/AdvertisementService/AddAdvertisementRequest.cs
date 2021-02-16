@@ -6,14 +6,10 @@ using System.Text;
 namespace Advertisements.Interfaces.Models.AdvertisementService
 {
     /// <summary>
-    /// Входная модель для добавления/изменения объявления
+    /// Входная модель данных для добавления объявления
     /// </summary>
-    public class UpdateAdvertisementRequest
-    {
-        /// <summary>
-        /// Идентификатор
-        /// </summary>
-        public Guid Id { get; set; }   
+    public class AddAdvertisementRequest
+    {                
         /// <summary>
         /// Текст
         /// </summary>
@@ -21,6 +17,6 @@ namespace Advertisements.Interfaces.Models.AdvertisementService
         /// <summary>
         /// Изображение
         /// </summary>        
-        public IFormFile Image { get; set; }        
+        public IFormFile Image { get; set; }
     }
 }
