@@ -31,8 +31,7 @@ namespace Advertisements.WebApi
         }
 
         public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -40,32 +39,22 @@ namespace Advertisements.WebApi
                     {
                         options.RequireHttpsMetadata = false;
                         options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            // укзывает, будет ли валидироваться издатель при валидации токена
+                        {                            
                             ValidateIssuer = true,
-                            // строка, представляющая издателя
                             ValidIssuer = AuthOptions.Issuer,
-
-                            // будет ли валидироваться потребитель токена
                             ValidateAudience = true,
-                            // установка потребителя токена
                             ValidAudience = AuthOptions.Audience,
-                            // будет ли валидироваться время существования
                             ValidateLifetime = true,
                             ClockSkew = TimeSpan.Zero,
-                            // установка ключа безопасности
                             IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
-                            // валидация ключа безопасности
                             ValidateIssuerSigningKey = true,
                         };
-                    });
-            //services.AddAuthorization();
+                    });            
             services.AddHttpContextAccessor();
             services.AddControllers();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSwaggerGen(c =>
-            {
-                // Set the comments path for the Swagger JSON and UI.
+            {                
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
@@ -104,22 +93,19 @@ namespace Advertisements.WebApi
             services.Configure<AdvertisementsOptions>(Configuration.GetSection(nameof(AdvertisementsOptions)));
             services.Configure<FilesOptions>(Configuration.GetSection(nameof(FilesOptions)));
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (string.IsNullOrWhiteSpace(env.WebRootPath))
             {
                 env.WebRootPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             }
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseSwagger();
-            
+            app.UseSwagger();            
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Advertisement API");

@@ -1,6 +1,7 @@
 ﻿using Advertisements.Data.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Advertisements.Interfaces.Models.UserService
@@ -17,22 +18,22 @@ namespace Advertisements.Interfaces.Models.UserService
         /// <summary>
         /// Имя
         /// </summary>
+        [Required(ErrorMessage = "Введите имя.")]
         public string Name { get; set; }
         /// <summary>
         /// Логин
         /// </summary>
+        [Required(ErrorMessage = "Введите логин.")]
         public string Login { get; set; }
         /// <summary>
         /// Пароль
         /// </summary>
+        [Required(ErrorMessage = "Введите пароль.")]
         public string Password { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public string PassKey { get; set; }
         /// <summary>
         /// Роль
         /// </summary>
-        public UserRoleEnum Role { get; set; }
+        [Required(ErrorMessage = "Укажите роль.")]
+        public UserRoles Role { get; set; }
     }
 }

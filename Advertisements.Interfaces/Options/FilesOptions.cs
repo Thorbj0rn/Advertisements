@@ -13,5 +13,25 @@ namespace Advertisements.Interfaces.Options
         /// Путь к папке с файлами
         /// </summary>
         public string FilesPath { get; set; }
+        /// <summary>
+        /// Размеры для маленького изображения
+        /// </summary>
+        public ImageSize SmallImageSize { get;set; }
+        /// <summary>
+        /// Размеры для среднего изображения
+        /// </summary>
+        public ImageSize MediumImageSize { get; set; }
+    }
+
+    public class ImageSize
+    {
+        /// <summary>
+        /// Ширина
+        /// </summary>
+        public int Width { get; set; }
+        /// <summary>
+        /// Высота
+        /// </summary>
+        public int Heigth { get; set; }
     }
 }

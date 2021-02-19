@@ -17,17 +17,17 @@ namespace Advertisements.Interfaces
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<bool> UpdateUser(UpdateUserRequest req);
+        Task<bool> Update(UpdateUserRequest req);
         /// <summary>
         /// Удаляет пользователя
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<bool> DeleteUser(Guid id);
+        Task<bool> Delete(Guid id);
         /// <summary>
         /// Возвращает список пользователей
         /// </summary>
         /// <returns></returns>
-        Task<List<UserResponse>> GetUsers();
+        Task<List<UserResponse>> Get();
     }
 }

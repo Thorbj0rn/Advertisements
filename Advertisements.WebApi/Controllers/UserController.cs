@@ -30,13 +30,13 @@ namespace Advertisements.WebApi.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        [Authorize(Roles = nameof(UserRoleEnum.Admin))]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
         [HttpPost("update-user")]
-        public async Task<ActionResult<bool>> UpdateUser(UpdateUserRequest request)
+        public async Task<ActionResult<bool>> Update(UpdateUserRequest request)
         {
             try 
             {
-                var res = await _userService.UpdateUser(request);
+                var res = await _userService.Update(request);
                 return new ActionResult<bool>(res);
             }
             catch(Exception ex)
@@ -51,13 +51,13 @@ namespace Advertisements.WebApi.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = nameof(UserRoleEnum.Admin))]
-        [HttpPost("delete-user")]
-        public async Task<ActionResult<bool>> DeleteUser(Guid id)
+        [Authorize(Roles = nameof(UserRoles.Admin))]
+        [HttpDelete("delete-user/{id}")]
+        public async Task<ActionResult<bool>> Delete(Guid id)
         {
             try
             {
-                var res = await _userService.DeleteUser(id);
+                var res = await _userService.Delete(id);
                 return new ActionResult<bool>(res);
             }
             catch (Exception ex)
@@ -71,13 +71,13 @@ namespace Advertisements.WebApi.Controllers
         /// Возвращает список пользователей
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = nameof(UserRoleEnum.Admin))]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
         [HttpGet("get-users")]        
-        public async Task<ActionResult<List<UserResponse>>> GetUsers()
+        public async Task<ActionResult<List<UserResponse>>> Get()
         {
             try
             {                
-                var res = await _userService.GetUsers();
+                var res = await _userService.Get();
                 return new OkObjectResult(res);
             }
             catch (Exception ex)

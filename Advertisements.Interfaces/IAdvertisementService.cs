@@ -12,24 +12,29 @@ namespace Advertisements.Interfaces
     /// </summary>
     public interface IAdvertisementService
     {
-        Task<int> AddAdvertisement(AddAdvertisementRequest req); 
+        /// <summary>
+        /// Добавить объявление
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<int> Add(AddAdvertisementRequest req); 
         /// <summary>
         /// Изменить объявление
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<bool> UpdateAdvertisement(UpdateAdvertisementRequest req);
+        Task<bool> Update(UpdateAdvertisementRequest req);
         /// <summary>
         /// Удалить объявление
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<bool> DeleteAdvertisement(Guid id);
+        Task<bool> Delete(Guid id);
         /// <summary>
         /// Возвращает список объявлений
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<PaginationResponse<AdvertisementResponse>> GetAdvertisements(AdvertisementsRequest req);
+        Task<PaginationResponse<AdvertisementResponse>> Get(AdvertisementsRequest req);
     }
 }

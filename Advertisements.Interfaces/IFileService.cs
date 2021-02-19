@@ -16,6 +16,6 @@ namespace Advertisements.Interfaces
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<string> SaveFile(SaveFileRequest req);
+        Task<SaveFileResponse> Save(SaveFileRequest req);
     }
 }

@@ -18,7 +18,7 @@ namespace Advertisements.Interfaces.Models.FileService
         /// <summary>
         /// Имя папки
         /// </summary>
-        public FileDirectoryEnum DirectoryName { get; set; }
+        public FileDirectories DirectoryName { get; set; }
         /// <summary>
         /// Загруженный файл
         /// </summary>

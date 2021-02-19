@@ -36,7 +36,7 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<bool> DeleteUser(Guid id)
+        public async Task<bool> Delete(Guid id)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace Advertisements.Services
         /// Возвращает список пользователей
         /// </summary>
         /// <returns></returns>
-        public async Task<List<UserResponse>> GetUsers()
+        public async Task<List<UserResponse>> Get()
         {
             try
             {
@@ -84,7 +84,7 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<bool> UpdateUser(UpdateUserRequest req)
+        public async Task<bool> Update(UpdateUserRequest req)
         {
             try
             {

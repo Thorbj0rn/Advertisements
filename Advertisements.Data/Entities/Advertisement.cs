@@ -30,13 +30,21 @@ namespace Advertisements.Data.Entities
         /// </summary>
         public string ImageUrl { get; set; }
         /// <summary>
+        /// Расширение файла
+        /// </summary>
+        public string ImageExtension { get; set; }
+        /// <summary>
+        /// Путь к файлу
+        /// </summary>
+        public string ImagePath { get; set; }
+        /// <summary>
         /// Рейтинг
         /// </summary>
         public double Rating { get; set; }
         /// <summary>
         /// Дата создания
         /// </summary>
-        public DateTime DateCreate { get; set; }
+        public DateTime Created { get; set; }
 
 
         /// <summary>

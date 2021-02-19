@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,29 +37,30 @@ namespace Advertisements.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<string> SaveFile(SaveFileRequest req)
+        public async Task<SaveFileResponse> Save(SaveFileRequest req)
         {
             try
-            {
-                // Относительный путь к файлу (относительно wwwroot)
-                var path = $"{_options.FilesPath}/{req.DirectoryName.ToString()}/{req.FileName}{Path.GetExtension(req.UploadedFile.FileName)}";
-                // Путь для сохранения
-                var savePath = _hostingEnvironment.WebRootPath + path;
+            {                
+                var path = $"{_options.FilesPath}/{req.DirectoryName.ToString()}/{req.FileName}/";
+                var savePath = $"{_hostingEnvironment.WebRootPath}{path}";
                 var dir = Path.GetDirectoryName(savePath);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
-                // сохраняем файл
-                using (var fileStream = new FileStream(savePath, FileMode.OpenOrCreate))
-                {
-                    await req.UploadedFile.CopyToAsync(fileStream);
-                }
+                var image = Image.Load(req.UploadedFile.OpenReadStream());
+                var ratio = image.Height / image.Width;
+                var smallImage = image.Clone(x => x.Resize(_options.SmallImageSize.Width, _options.SmallImageSize.Heigth * ratio));
+                var mediumImage = image.Clone(x => x.Resize(_options.MediumImageSize.Width, _options.MediumImageSize.Heigth * ratio));
 
-                // Ссылка на файл
+                var extension = Path.GetExtension(req.UploadedFile.FileName);
+                image.Save($"{savePath}{ImageSizes.Full.ToString()}{extension}");
+                smallImage.Save($"{savePath}{ImageSizes.Small.ToString()}{extension}");
+                mediumImage.Save($"{savePath}{ImageSizes.Medium.ToString()}{extension}");
+
                 var httpContext = _httpContextAccessor.HttpContext.Request;
                 var url = $"{httpContext.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}{path}";
-
-                return url;
+                
+                return new SaveFileResponse { Url = url, Extension = extension, Path = savePath};
             }
             catch (Exception ex)
             {

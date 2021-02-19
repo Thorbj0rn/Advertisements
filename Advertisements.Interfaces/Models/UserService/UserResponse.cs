@@ -25,6 +25,6 @@ namespace Advertisements.Interfaces.Models.UserService
         /// <summary>
         /// Роль
         /// </summary>
-        public UserRoleEnum Role { get; set; }
+        public UserRoles Role { get; set; }
     }
 }

@@ -4,14 +4,16 @@ using Advertisements.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Advertisements.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210219203920_AdvertisementsAddColumnImageExtention")]
+    partial class AdvertisementsAddColumnImageExtention
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,9 +35,6 @@ namespace Advertisements.Data.Migrations
                         .HasDefaultValueSql("getdate()");
 
                     b.Property<string>("ImageExtension")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
@@ -90,7 +89,7 @@ namespace Advertisements.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("63a3438a-38ca-4e6b-b22d-0187a1c0e60e"),
+                            Id = new Guid("2217bdbb-0288-4c12-bc65-9c8b854d27be"),
                             Login = "admin",
                             Name = "Admin",
                             PassKey = "aa78ac69-64b3-4142-98b5-f9ca1a5fae5d",

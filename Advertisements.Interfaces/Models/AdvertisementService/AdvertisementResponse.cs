@@ -40,6 +40,6 @@ namespace Advertisements.Interfaces.Models.AdvertisementService
         /// <summary>
         /// Дата создания
         /// </summary>
-        public DateTime DateCreate { get; set; }
+        public DateTime Created { get; set; }
     }
 }

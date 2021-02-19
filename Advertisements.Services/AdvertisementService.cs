@@ -28,13 +28,13 @@ namespace Advertisements.Services
     public class AdvertisementService: IAdvertisementService
     {
         private readonly DataContext _dataContext;
-        private readonly ILogger<AdvertisementService> _logger;        
+        private readonly ILogger<Advertisement> _logger;        
         private readonly AdvertisementsOptions _options;
         private readonly IFileService _fileService;
         private readonly CurrentUser _user;
 
         public AdvertisementService(DataContext dataContext, 
-                                    ILogger<AdvertisementService> logger,                                    
+                                    ILogger<Advertisement> logger,                                    
                                     IOptions<AdvertisementsOptions> options,
                                     IFileService fileService,
                                     IHttpContextAccessor httpContextAccessor)
@@ -46,7 +46,7 @@ namespace Advertisements.Services
             _user = new CurrentUser
             {
                 Id = Guid.Parse(httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value),
-                Role = (UserRoleEnum)Enum.Parse(typeof(UserRoleEnum), httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role).Value)
+                Role = (UserRoles)Enum.Parse(typeof(UserRoles), httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role).Value)
             };
         }
 
@@ -55,15 +55,18 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<bool> DeleteAdvertisement(Guid id)
+        public async Task<bool> Delete(Guid id)
         {
             try
             {
                 var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id);
                 if (adv == null)
                     throw new Exception("Объявление не найдено.");
-                if (_user.Role != UserRoleEnum.Admin && _user.Id != adv.UserId)
+                if (_user.Role != UserRoles.Admin && _user.Id != adv.UserId)
                     throw new Exception("У вас нет прав удалять данное объявление.");
+
+                if (Directory.Exists(adv.ImagePath))
+                    Directory.Delete(adv.ImagePath, true);
 
                 _dataContext.Remove(adv);
                 await _dataContext.SaveChangesAsync();
@@ -82,41 +85,48 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<int> AddAdvertisement(AddAdvertisementRequest req)
+        public async Task<int> Add(AddAdvertisementRequest req)
         {
-            try
+            using (var transaction = await _dataContext.Database.BeginTransactionAsync())
             {
-                var currentCount = await _dataContext.Advertisements.CountAsync(a => a.UserId == _user.Id);
-                if (currentCount >= _options.MaxAdsPerUser)
-                    throw new Exception("Вы исчерпали лимит объявлений.");
-
-                var id = Guid.NewGuid();
-                var saveFileReq = new SaveFileRequest
+                try
                 {
-                    FileName = $"{id}",
-                    DirectoryName = FileDirectoryEnum.Advertisements,
-                    UploadedFile = req.Image
-                };
+                    var currentCount = await _dataContext.Advertisements.CountAsync(a => a.UserId == _user.Id);
+                    if (currentCount >= _options.MaxAdsPerUser)
+                        throw new Exception("Вы исчерпали лимит объявлений.");
 
-                var url = req.Image != null ? await _fileService.SaveFile(saveFileReq) : "";
+                    var id = Guid.NewGuid();
+                    var saveFileReq = new SaveFileRequest
+                    {
+                        FileName = $"{id}",
+                        DirectoryName = FileDirectories.Advertisements,
+                        UploadedFile = req.Image
+                    };
 
-                var adv = new Advertisement
+                    var filesInfo = req.Image != null ? await _fileService.Save(saveFileReq) : new SaveFileResponse { Url = "", Extension = ""} ;
+
+                    var adv = new Data.Entities.Advertisement
+                    {
+                        Id = id,
+                        ImageUrl = filesInfo.Url,
+                        ImageExtension = filesInfo.Extension,
+                        ImagePath = filesInfo.Path,
+                        Text = req.Text,
+                        UserId = _user.Id
+                    };
+
+                    await _dataContext.AddAsync(adv);
+                    await _dataContext.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    return adv.Number;
+                }
+                catch (Exception ex)
                 {
-                    Id = id,
-                    ImageUrl = url,
-                    Text = req.Text,
-                    UserId = _user.Id
-                };
-
-                await _dataContext.AddAsync(adv);                
-                await _dataContext.SaveChangesAsync();
-
-                return adv.Number;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw ex;
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex.Message);
+                    throw ex;
+                }
             }
         }
 
@@ -125,35 +135,49 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<bool> UpdateAdvertisement(UpdateAdvertisementRequest req)
+        public async Task<bool> Update(UpdateAdvertisementRequest req)
         {
-            try
+            using (var transaction = await _dataContext.Database.BeginTransactionAsync())
             {
-                var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == req.Id);
-                if (adv == null)
-                    throw new Exception("Объявление не найдено.");
-                if (_user.Role != UserRoleEnum.Admin && _user.Id != adv.UserId)
-                    throw new Exception("У вас нет прав редактировать данное объявление.");
-                                
-                var saveFileReq = new SaveFileRequest
+                try
                 {
-                    FileName = $"{adv.Id}",
-                    DirectoryName = FileDirectoryEnum.Advertisements,
-                    UploadedFile = req.Image
-                };
-                var url = req.Image != null ? await _fileService.SaveFile(saveFileReq) : "";
+                    var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == req.Id);
+                    if (adv == null)
+                        throw new Exception("Объявление не найдено.");
+                    if (_user.Role != UserRoles.Admin && _user.Id != adv.UserId)
+                        throw new Exception("У вас нет прав редактировать данное объявление.");
 
-                adv.ImageUrl = url;
-                adv.Text = req.Text;
+                    var filesInfo = new SaveFileResponse { Url = "", Extension = "" };
+                    if (req.Image != null)
+                    {
+                        if(Directory.Exists(adv.ImagePath))
+                            Directory.Delete(adv.ImagePath, true);
 
-                await _dataContext.SaveChangesAsync();               
+                        var saveFileReq = new SaveFileRequest
+                        {
+                            FileName = $"{adv.Id}",
+                            DirectoryName = FileDirectories.Advertisements,
+                            UploadedFile = req.Image
+                        };
+                        filesInfo = await _fileService.Save(saveFileReq);
+                    }
 
-                return true;
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw ex;
+                    adv.ImageUrl = filesInfo.Url;
+                    adv.ImageExtension = filesInfo.Extension;
+                    adv.ImagePath = filesInfo.Path;
+                    adv.Text = req.Text;
+
+                    await _dataContext.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex.Message);
+                    throw ex;
+                }
             }
         }
 
@@ -162,10 +186,11 @@ namespace Advertisements.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<PaginationResponse<AdvertisementResponse>> GetAdvertisements(AdvertisementsRequest req)
+        public async Task<PaginationResponse<AdvertisementResponse>> Get(AdvertisementsRequest req)
         {
             try
             {
+                var size = req?.ImageSize ?? ImageSizes.Full;
                 // Выбираем объявления
                 var advs =  _dataContext.Advertisements
                     .Select(a => new AdvertisementResponse
@@ -173,8 +198,8 @@ namespace Advertisements.Services
                         Id = a.Id,
                         Number = a.Number,
                         Text = a.Text,
-                        DateCreate = a.DateCreate,
-                        ImageUrl = a.ImageUrl,
+                        Created = a.Created,
+                        ImageUrl = $"{a.ImageUrl}{size.ToString()}{a.ImageExtension}",
                         Rating = a.Rating,
                         UserId = a.UserId,
                         UserName = a.User.Name

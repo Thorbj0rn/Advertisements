@@ -27,13 +27,13 @@ namespace Advertisements.Data.Entities
         /// </summary>
         public string Password { get; set; }
         /// <summary>
-        /// 
+        /// Соль
         /// </summary>
         public string PassKey { get; set; }
         /// <summary>
         /// Роль
         /// </summary>
-        public UserRoleEnum Role { get; set; }
+        public UserRoles Role { get; set; }
 
 
         /// <summary>

@@ -31,11 +31,11 @@ namespace Advertisements.WebApi.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("update-advertisement")]
-        public async Task<ActionResult<bool>> UpdateAdvertisement([FromForm] UpdateAdvertisementRequest req)
+        public async Task<ActionResult<bool>> Update([FromForm] UpdateAdvertisementRequest req)
         {
             try
             {                
-                var res = await _advService.UpdateAdvertisement(req);
+                var res = await _advService.Update(req);
                 return new OkObjectResult(res);
             }
             catch (Exception ex)
@@ -52,11 +52,11 @@ namespace Advertisements.WebApi.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("add-advertisement")]
-        public async Task<ActionResult<int>> AddAdvertisement([FromForm] AddAdvertisementRequest req)
+        public async Task<ActionResult<int>> Add([FromForm] AddAdvertisementRequest req)
         {
             try
             {
-                var res = await _advService.AddAdvertisement(req);
+                var res = await _advService.Add(req);
                 return new OkObjectResult(res);
             }
             catch (Exception ex)
@@ -72,12 +72,12 @@ namespace Advertisements.WebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("delete-advertisement")]
-        public async Task<ActionResult<bool>> DeleteAdvertisement(Guid id)
+        [HttpDelete("delete-advertisement/{id}")]
+        public async Task<ActionResult<bool>> Delete(Guid id)
         {
             try
             {
-                var res = await _advService.DeleteAdvertisement(id);
+                var res = await _advService.Delete(id);
                 return new OkObjectResult(res);
             }
             catch (Exception ex)
@@ -94,11 +94,11 @@ namespace Advertisements.WebApi.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("get-advertisements")]
-        public async Task<ActionResult<List<AdvertisementResponse>>> GetAdvertisements (AdvertisementsRequest req)
+        public async Task<ActionResult<List<AdvertisementResponse>>> Get(AdvertisementsRequest req)
         {
             try
             {
-                var res = await _advService.GetAdvertisements(req);
+                var res = await _advService.Get(req);
                 return new OkObjectResult(res);
             }
             catch (Exception ex)

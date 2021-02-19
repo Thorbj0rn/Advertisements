@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Advertisements.Data.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +10,7 @@ namespace Advertisements.Interfaces.Models.AdvertisementService
     /// </summary>
     public class AdvertisementsRequest
     {
+        public ImageSizes ImageSize { get; set; }
         /// <summary>
         /// Фильтры
         /// </summary>

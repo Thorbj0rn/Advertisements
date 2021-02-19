@@ -7,7 +7,7 @@ namespace Advertisements.Data.Enums
     /// <summary>
     /// Перечисление названий папок для файлов
     /// </summary>
-    public enum FileDirectoryEnum
+    public enum FileDirectories
     {
         Advertisements
     }
