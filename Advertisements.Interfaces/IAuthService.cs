@@ -17,6 +17,6 @@ namespace Advertisements.Interfaces
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<ClaimsIdentity> GetIdentity(IdentityRequest req);
+        Task<ClaimsIdentity> GetIdentity(IdentityRequest request);
     }
 }

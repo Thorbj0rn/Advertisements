@@ -16,6 +16,12 @@ namespace Advertisements.Interfaces
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<SaveFileResponse> Save(SaveFileRequest req);
+        Task<SaveFileResponse> Save(SaveFileRequest request);
+        /// <summary>
+        /// Возвращает ссылку на изображение
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<string> GetImageUrl(ImageUrlRequest request);
     }
 }

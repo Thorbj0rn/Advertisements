@@ -31,7 +31,7 @@ namespace Advertisements.WebApi.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [Authorize(Roles = nameof(UserRoles.Admin))]
-        [HttpPost("update-user")]
+        [HttpPost("update")]
         public async Task<ActionResult<bool>> Update(UpdateUserRequest request)
         {
             try 
@@ -52,7 +52,7 @@ namespace Advertisements.WebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize(Roles = nameof(UserRoles.Admin))]
-        [HttpDelete("delete-user/{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<ActionResult<bool>> Delete(Guid id)
         {
             try
@@ -72,7 +72,7 @@ namespace Advertisements.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize(Roles = nameof(UserRoles.Admin))]
-        [HttpGet("get-users")]        
+        [HttpGet("get")]        
         public async Task<ActionResult<List<UserResponse>>> Get()
         {
             try

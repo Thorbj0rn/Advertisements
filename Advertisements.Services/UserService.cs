@@ -46,10 +46,10 @@ namespace Advertisements.Services
 
                 return true;
             }
-            catch(Exception ex)
+            catch(Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex; 
+                _logger.LogError(exception.Message);
+                throw exception; 
             }
         }
 
@@ -72,46 +72,46 @@ namespace Advertisements.Services
                     .ToListAsync();
                 return users;
             }
-            catch(Exception ex)
+            catch(Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
 
         /// <summary>
         /// Добавляет/изменяет пользователя
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> Update(UpdateUserRequest req)
+        public async Task<bool> Update(UpdateUserRequest request)
         {
             try
             {
                 var key = Guid.NewGuid().ToString();
-                var password = req.Password.GetSHA256Hash(key);
+                var password = request.Password.GetSHA256Hash(key);
 
                 var user = new User
                 {
-                    Id = req.Id.GetValueOrDefault(Guid.Empty),
-                    Name = req.Name,
-                    Login = req.Login,
+                    Id = request.Id.GetValueOrDefault(Guid.Empty),
+                    Name = request.Name,
+                    Login = request.Login,
                     Password = password,
                     PassKey = key,
-                    Role = req.Role                    
+                    Role = request.Role                    
                 };
 
                 _dataContext.Attach(user);
-                _dataContext.Entry(user).State = req.Id.HasValue ? EntityState.Modified : EntityState.Added;
+                _dataContext.Entry(user).State = request.Id.HasValue ? EntityState.Modified : EntityState.Added;
 
                 await _dataContext.SaveChangesAsync();
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
     }

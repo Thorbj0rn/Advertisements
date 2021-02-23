@@ -27,42 +27,42 @@ namespace Advertisements.WebApi.Controllers
         /// <summary>
         /// Редактирует объявление
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("update-advertisement")]
-        public async Task<ActionResult<bool>> Update([FromForm] UpdateAdvertisementRequest req)
+        [HttpPost("update")]
+        public async Task<ActionResult<bool>> Update([FromForm] UpdateAdvertisementRequest request)
         {
             try
             {                
-                var res = await _advService.Update(req);
+                var res = await _advService.Update(request);
                 return new OkObjectResult(res);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
 
         /// <summary>
         /// Добавляет объявление
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("add-advertisement")]
-        public async Task<ActionResult<int>> Add([FromForm] AddAdvertisementRequest req)
+        [HttpPost("add")]
+        public async Task<ActionResult<int>> Add([FromForm] AddAdvertisementRequest request)
         {
             try
             {
-                var res = await _advService.Add(req);
+                var res = await _advService.Add(request);
                 return new OkObjectResult(res);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
 
@@ -72,7 +72,7 @@ namespace Advertisements.WebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpDelete("delete-advertisement/{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<ActionResult<bool>> Delete(Guid id)
         {
             try
@@ -80,32 +80,54 @@ namespace Advertisements.WebApi.Controllers
                 var res = await _advService.Delete(id);
                 return new OkObjectResult(res);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
 
         /// <summary>
         /// Возвращает список объявлений
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("get-advertisements")]
-        public async Task<ActionResult<List<AdvertisementResponse>>> Get(AdvertisementsRequest req)
+        [HttpPost("get")]
+        public async Task<ActionResult<List<AdvertisementResponse>>> Get(AdvertisementsRequest request)
         {
             try
             {
-                var res = await _advService.Get(req);
+                var res = await _advService.Get(request);
                 return new OkObjectResult(res);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
+
+        /// <summary>
+        /// Возвращает ссылку на изображения заданного размера
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("get-image-url")]
+        public async Task<ActionResult<List<string>>> GetImageUrl(AdvertisementImageUrlRequest request)
+        {
+            try
+            {
+                var res = await _advService.GetImageUrl(request);
+                return new OkObjectResult(res);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception.Message);
+                throw exception;
+            }
+        }
+
     }
 }

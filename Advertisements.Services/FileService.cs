@@ -37,25 +37,28 @@ namespace Advertisements.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<SaveFileResponse> Save(SaveFileRequest req)
+        /// <summary>
+        /// Сохраняет файл
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<SaveFileResponse> Save(SaveFileRequest request)
         {
             try
             {                
-                var path = $"{_options.FilesPath}/{req.DirectoryName.ToString()}/{req.FileName}/";
+                var path = $"{_options.FilesPath}/{request.DirectoryName.ToString()}/{request.FileName}/";
                 var savePath = $"{_hostingEnvironment.WebRootPath}{path}";
-                var dir = Path.GetDirectoryName(savePath);
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
+                var directory = Path.GetDirectoryName(savePath);
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
 
-                var image = Image.Load(req.UploadedFile.OpenReadStream());
+                var image = Image.Load(request.UploadedFile.OpenReadStream());
                 var ratio = image.Height / image.Width;
-                var smallImage = image.Clone(x => x.Resize(_options.SmallImageSize.Width, _options.SmallImageSize.Heigth * ratio));
-                var mediumImage = image.Clone(x => x.Resize(_options.MediumImageSize.Width, _options.MediumImageSize.Heigth * ratio));
+                var smallImage = image.Clone(x => x.Resize(_options.SmallImageSize.Width, _options.SmallImageSize.Heigth * ratio));                
 
-                var extension = Path.GetExtension(req.UploadedFile.FileName);
+                var extension = Path.GetExtension(request.UploadedFile.FileName);
                 image.Save($"{savePath}{ImageSizes.Full.ToString()}{extension}");
-                smallImage.Save($"{savePath}{ImageSizes.Small.ToString()}{extension}");
-                mediumImage.Save($"{savePath}{ImageSizes.Medium.ToString()}{extension}");
+                smallImage.Save($"{savePath}{ImageSizes.Small.ToString()}{extension}");                
 
                 var httpContext = _httpContextAccessor.HttpContext.Request;
                 var url = $"{httpContext.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}{path}";
@@ -66,6 +69,37 @@ namespace Advertisements.Services
             {
                 _logger.LogError(ex.Message);
                 throw new Exception(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Возвращает ссылку на изображение
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<string> GetImageUrl(ImageUrlRequest request)
+        {
+            try
+            {
+                var fileName = $"{request.Width}x{request.Heigth}{request.Extension}";
+                var path = $"{_options.FilesPath}/{request.Directory.ToString()}/{request.Id}/";
+                var saveDirectory = $"{_hostingEnvironment.WebRootPath}{path}";
+                var filePath = $"{saveDirectory}{fileName}";
+                var httpContext = _httpContextAccessor.HttpContext.Request;
+
+                if (File.Exists(filePath))
+                    return $"{httpContext.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}{path}{fileName}";
+
+                var image = Image.Load($"{saveDirectory}{ImageSizes.Full.ToString()}{request.Extension}");
+                image.Mutate(x => x.Resize(request.Width, request.Heigth));
+                image.Save(filePath);
+
+                return $"{httpContext.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}{path}{fileName}";
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
     }

@@ -24,13 +24,15 @@ namespace Advertisements.Interfaces.ValidationAttributes
             ValidationContext validationContext)
         {
             var file = (IFormFile)value;
-            var extension = Path.GetExtension(file.FileName).Trim('.');
-
-            if (!Extensions.Contains(extension))
+            if (file != null)
             {
-                return new ValidationResult(GetErrorMessage());
-            }
+                var extension = Path.GetExtension(file.FileName).Trim('.');
 
+                if (!Extensions.Contains(extension))
+                {
+                    return new ValidationResult(GetErrorMessage());
+                }
+            }
             return ValidationResult.Success;
         }
     }

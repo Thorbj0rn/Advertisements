@@ -17,7 +17,7 @@ namespace Advertisements.Interfaces
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<bool> Update(UpdateUserRequest req);
+        Task<bool> Update(UpdateUserRequest request);
         /// <summary>
         /// Удаляет пользователя
         /// </summary>

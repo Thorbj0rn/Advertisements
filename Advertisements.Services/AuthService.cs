@@ -26,15 +26,15 @@ namespace Advertisements.Services
             _logger = logger;
         }
 
-        public async Task<ClaimsIdentity> GetIdentity(IdentityRequest req)
+        public async Task<ClaimsIdentity> GetIdentity(IdentityRequest request)
         {
             try
             {
-                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Login == req.Login);
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Login == request.Login);
                 if (user == null)
                     throw new Exception("Пользователь не найден.");
 
-                var password = req.Password.GetSHA256Hash(user.PassKey);
+                var password = request.Password.GetSHA256Hash(user.PassKey);
 
                 if (user.Password != password)
                     throw new Exception("Неверный пароль.");
@@ -51,10 +51,10 @@ namespace Advertisements.Services
                 return claimsIdentity;
 
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
     }

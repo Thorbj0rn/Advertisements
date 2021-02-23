@@ -15,15 +15,15 @@ namespace Advertisements.Interfaces
         /// <summary>
         /// Добавить объявление
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        Task<int> Add(AddAdvertisementRequest req); 
+        Task<int> Add(AddAdvertisementRequest request);
         /// <summary>
         /// Изменить объявление
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        Task<bool> Update(UpdateAdvertisementRequest req);
+        Task<bool> Update(UpdateAdvertisementRequest request);
         /// <summary>
         /// Удалить объявление
         /// </summary>
@@ -33,8 +33,14 @@ namespace Advertisements.Interfaces
         /// <summary>
         /// Возвращает список объявлений
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        Task<PaginationResponse<AdvertisementResponse>> Get(AdvertisementsRequest req);
+        Task<PaginationResponse<AdvertisementResponse>> Get(AdvertisementsRequest request);
+        /// <summary>
+        /// Возвращает ссылку на изображение заданного размера заданного объявления
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<string> GetImageUrl(AdvertisementImageUrlRequest request);
     }
 }

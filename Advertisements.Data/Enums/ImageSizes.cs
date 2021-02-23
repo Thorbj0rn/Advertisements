@@ -7,7 +7,6 @@ namespace Advertisements.Data.Enums
     public enum ImageSizes
     {
         Full = 0,
-        Small = 1,
-        Medium = 2
+        Small = 1
     }
 }

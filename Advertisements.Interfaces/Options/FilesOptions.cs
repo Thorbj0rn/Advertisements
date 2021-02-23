@@ -16,11 +16,7 @@ namespace Advertisements.Interfaces.Options
         /// <summary>
         /// Размеры для маленького изображения
         /// </summary>
-        public ImageSize SmallImageSize { get;set; }
-        /// <summary>
-        /// Размеры для среднего изображения
-        /// </summary>
-        public ImageSize MediumImageSize { get; set; }
+        public ImageSize SmallImageSize { get;set; }        
     }
 
     public class ImageSize

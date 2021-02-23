@@ -9,8 +9,7 @@ namespace Advertisements.Interfaces.Models.AdvertisementService
     /// Входная модель для получения списка объявлений
     /// </summary>
     public class AdvertisementsRequest
-    {
-        public ImageSizes ImageSize { get; set; }
+    {        
         /// <summary>
         /// Фильтры
         /// </summary>

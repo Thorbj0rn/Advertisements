@@ -51,6 +51,37 @@ namespace Advertisements.Services
         }
 
         /// <summary>
+        /// Возвращает ссылку на изображение заданного размера заданного объявления
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<string> GetImageUrl(AdvertisementImageUrlRequest request)
+        {
+            try
+            {
+                var advertisement = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == request.Id);
+                if (advertisement == null)
+                    throw new Exception("Объявление не найдено.");
+
+                var imageRequest = new ImageUrlRequest
+                {
+                    Id = request.Id,
+                    Directory = FileDirectories.Advertisements,
+                    Extension = advertisement.ImageExtension,
+                    Heigth = request.Heigth,
+                    Width = request.Width
+                };
+                var imageUrl = await _fileService.GetImageUrl(imageRequest);
+
+                return imageUrl;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception.Message);
+                throw exception;
+            }
+        }
+        /// <summary>
         /// Удаляет объявление
         /// </summary>
         /// <param name="id"></param>
@@ -59,35 +90,35 @@ namespace Advertisements.Services
         {
             try
             {
-                var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id);
-                if (adv == null)
+                var advertisement = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id);
+                if (advertisement == null)
                     throw new Exception("Объявление не найдено.");
-                if (_user.Role != UserRoles.Admin && _user.Id != adv.UserId)
+                if (_user.Role != UserRoles.Admin && _user.Id != advertisement.UserId)
                     throw new Exception("У вас нет прав удалять данное объявление.");
 
-                if (Directory.Exists(adv.ImagePath))
-                    Directory.Delete(adv.ImagePath, true);
+                if (Directory.Exists(advertisement.ImagePath))
+                    Directory.Delete(advertisement.ImagePath, true);
 
-                _dataContext.Remove(adv);
+                _dataContext.Remove(advertisement);
                 await _dataContext.SaveChangesAsync();
 
                 return true;
             }
-            catch(Exception ex)
+            catch(Exception exception)
             {
-                _logger.LogError(ex.Message);
-                throw ex;
+                _logger.LogError(exception.Message);
+                throw exception;
             }
         }
 
         /// <summary>
         /// Добавляет объявление
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<int> Add(AddAdvertisementRequest req)
+        public async Task<int> Add(AddAdvertisementRequest request)
         {
-            using (var transaction = await _dataContext.Database.BeginTransactionAsync())
+            using (var transaction = await _dataContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 try
                 {
@@ -96,36 +127,36 @@ namespace Advertisements.Services
                         throw new Exception("Вы исчерпали лимит объявлений.");
 
                     var id = Guid.NewGuid();
-                    var saveFileReq = new SaveFileRequest
+                    var saveFileRequest = new SaveFileRequest
                     {
                         FileName = $"{id}",
                         DirectoryName = FileDirectories.Advertisements,
-                        UploadedFile = req.Image
+                        UploadedFile = request.Image
                     };
 
-                    var filesInfo = req.Image != null ? await _fileService.Save(saveFileReq) : new SaveFileResponse { Url = "", Extension = ""} ;
+                    var filesInfo = request.Image != null ? await _fileService.Save(saveFileRequest) : new SaveFileResponse { Url = "", Extension = ""} ;
 
-                    var adv = new Data.Entities.Advertisement
+                    var advertisement = new Data.Entities.Advertisement
                     {
                         Id = id,
                         ImageUrl = filesInfo.Url,
                         ImageExtension = filesInfo.Extension,
                         ImagePath = filesInfo.Path,
-                        Text = req.Text,
+                        Text = request.Text,
                         UserId = _user.Id
                     };
 
-                    await _dataContext.AddAsync(adv);
+                    await _dataContext.AddAsync(advertisement);
                     await _dataContext.SaveChangesAsync();
 
                     await transaction.CommitAsync();
-                    return adv.Number;
+                    return advertisement.Number;
                 }
-                catch (Exception ex)
+                catch (Exception exception)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError(ex.Message);
-                    throw ex;
+                    _logger.LogError(exception.Message);
+                    throw exception;
                 }
             }
         }
@@ -133,50 +164,50 @@ namespace Advertisements.Services
         /// <summary>
         /// Обновляет объявление
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> Update(UpdateAdvertisementRequest req)
+        public async Task<bool> Update(UpdateAdvertisementRequest request)
         {
-            using (var transaction = await _dataContext.Database.BeginTransactionAsync())
+            using (var transaction = await _dataContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead))
             {
                 try
                 {
-                    var adv = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == req.Id);
-                    if (adv == null)
+                    var advertisement = await _dataContext.Advertisements.FirstOrDefaultAsync(a => a.Id == request.Id);
+                    if (advertisement == null)
                         throw new Exception("Объявление не найдено.");
-                    if (_user.Role != UserRoles.Admin && _user.Id != adv.UserId)
+                    if (_user.Role != UserRoles.Admin && _user.Id != advertisement.UserId)
                         throw new Exception("У вас нет прав редактировать данное объявление.");
 
                     var filesInfo = new SaveFileResponse { Url = "", Extension = "" };
-                    if (req.Image != null)
+                    if (request.Image != null)
                     {
-                        if(Directory.Exists(adv.ImagePath))
-                            Directory.Delete(adv.ImagePath, true);
+                        if(Directory.Exists(advertisement.ImagePath))
+                            Directory.Delete(advertisement.ImagePath, true);
 
                         var saveFileReq = new SaveFileRequest
                         {
-                            FileName = $"{adv.Id}",
+                            FileName = $"{advertisement.Id}",
                             DirectoryName = FileDirectories.Advertisements,
-                            UploadedFile = req.Image
+                            UploadedFile = request.Image
                         };
                         filesInfo = await _fileService.Save(saveFileReq);
                     }
 
-                    adv.ImageUrl = filesInfo.Url;
-                    adv.ImageExtension = filesInfo.Extension;
-                    adv.ImagePath = filesInfo.Path;
-                    adv.Text = req.Text;
+                    advertisement.ImageUrl = filesInfo.Url;
+                    advertisement.ImageExtension = filesInfo.Extension;
+                    advertisement.ImagePath = filesInfo.Path;
+                    advertisement.Text = request.Text;
 
                     await _dataContext.SaveChangesAsync();
 
                     await transaction.CommitAsync();
                     return true;
                 }
-                catch (Exception ex)
+                catch (Exception exception)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError(ex.Message);
-                    throw ex;
+                    _logger.LogError(exception.Message);
+                    throw exception;
                 }
             }
         }
@@ -184,45 +215,44 @@ namespace Advertisements.Services
         /// <summary>
         /// Возвращает список объявлений
         /// </summary>
-        /// <param name="req"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<PaginationResponse<AdvertisementResponse>> Get(AdvertisementsRequest req)
+        public async Task<PaginationResponse<AdvertisementResponse>> Get(AdvertisementsRequest request)
         {
             try
-            {
-                var size = req?.ImageSize ?? ImageSizes.Full;
+            {                
                 // Выбираем объявления
-                var advs =  _dataContext.Advertisements
+                var advertisements =  _dataContext.Advertisements
                     .Select(a => new AdvertisementResponse
                     {
                         Id = a.Id,
                         Number = a.Number,
                         Text = a.Text,
                         Created = a.Created,
-                        ImageUrl = $"{a.ImageUrl}{size.ToString()}{a.ImageExtension}",
+                        ImageUrl = $"{a.ImageUrl}{ImageSizes.Small.ToString()}{a.ImageExtension}",
                         Rating = a.Rating,
                         UserId = a.UserId,
                         UserName = a.User.Name
                     });
                 // Применяем фильтры
-                if (req?.Filters != null && req.Filters.Count > 0)
+                if (request?.Filters != null && request.Filters.Count > 0)
                 {
-                    req.Filters.ForEach(f =>
+                    request.Filters.ForEach(f =>
                     {
                         var expression = GetConditionTemplate(f.Condition, f.FieldName);
-                        advs = advs.Where(expression, f.Value);
+                        advertisements = advertisements.Where(expression, f.Value);
                     });
                 }
                 // Применяем сортировки
-                if (req?.Sorts != null && req.Sorts.Count > 0)
+                if (request?.Sorts != null && request.Sorts.Count > 0)
                 {
-                    var sort = string.Join(',', req.Sorts.Select(s => GetSort(s.FieldName, s.Desc)).ToList());
-                    advs = advs.OrderBy(sort);
+                    var sort = string.Join(',', request.Sorts.Select(s => GetSort(s.FieldName, s.Desc)).ToList());
+                    advertisements = advertisements.OrderBy(sort);
                 }
                 // Применяем пагинацию
-                var page = req?.Pagination?.Page != null ? req.Pagination.Page : 1;
-                var pageSize = req?.Pagination?.PageSize != null ? req.Pagination.PageSize : 10;
-                var pageRes = advs.PageResult(page, pageSize);
+                var page = request?.Pagination?.Page != null ? request.Pagination.Page : 1;
+                var pageSize = request?.Pagination?.PageSize != null ? request.Pagination.PageSize : 10;
+                var pageRes = advertisements.PageResult(page, pageSize);
                 
                 var result = new PaginationResponse<AdvertisementResponse>
                 {
