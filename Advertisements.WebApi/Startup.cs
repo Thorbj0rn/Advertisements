@@ -2,6 +2,7 @@ using Advertisements.Data;
 using Advertisements.Interfaces;
 using Advertisements.Interfaces.Options;
 using Advertisements.Services;
+using Advertisements.WebApi.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -111,11 +112,13 @@ namespace Advertisements.WebApi
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Advertisement API");
             });
 
+            
+            app.UseMiddleware<ImageResizeMiddleware>();
+
             app.UseRouting();
             app.UseStaticFiles();
-
             app.UseAuthentication();
-            app.UseAuthorization();            
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
